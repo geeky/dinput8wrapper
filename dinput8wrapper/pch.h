@@ -17,6 +17,7 @@ static HMODULE DllHModule;
 #include "CDirectInput8Globals.h"
 #include "CDirectInputDeviceMouse8A.h"
 #include "CDirectInputDeviceKeyboard8A.h"
+#include "CDirectInputDeviceGamepad8A.h"
 #include "CDirectInput8A.h"
 
 #endif //PCH_H

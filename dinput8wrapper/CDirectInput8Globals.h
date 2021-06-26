@@ -2,24 +2,25 @@
 
 class CDirectInput8Globals
 {
-private:
-	DWORD dwSequence;
+private:	
 	DWORD dikMapping[256];
 	const wchar_t* dikNames[256];
 	CRITICAL_SECTION critSect;
 
 public:
 
-	BufferedKeyboardEvent* bkeFirst;
-	BufferedKeyboardEvent* bkeLast;
+	// Sequence number for keyboard actions
+	DWORD dwSequence;
 
 	bool keyboardAcquired = false;
-	int maxBufferedKeyEventsCount = 1024;
-	int bufferedKeyEventsCount = 0;
 
+	// Key-States received via WM_INPUT / Raw-Input
 	BYTE keyStates[256];
-	DIDEVICEOBJECTDATA lastKeyEvent;
+
+	// Key-States sent to the game
+	BYTE gameKeyStates[256];
 		
+	// Current Mouse-State
 	DIMOUSESTATE* mouseState = new DIMOUSESTATE();	
 		
 
@@ -43,13 +44,9 @@ public:
 	CDirectInput8Globals()
 	{
 		InitializeCriticalSection(&critSect);
-
-		bufferedKeyEventsCount = 0;
-		bkeFirst = NULL;
-		bkeLast = NULL;
-
-		ZeroMemory(&lastKeyEvent, sizeof(DIDEVICEOBJECTDATA));
+				
 		ZeroMemory(keyStates, sizeof(keyStates));
+		ZeroMemory(gameKeyStates, sizeof(gameKeyStates));
 		ZeroMemory(mouseState, sizeof(DIMOUSESTATE));
 
 		dwSequence = 1;
@@ -278,64 +275,6 @@ public:
 		}
 	}
 
-	void RemoveFirstKeyboardEntry()
-	{
-		if (bkeFirst != NULL)
-		{
-			BufferedKeyboardEvent* nextEvt = bkeFirst->nextPtr;
-
-			// Remove first entry
-			delete bkeFirst;
-
-			bkeFirst = nextEvt;
-			if (bkeFirst == NULL)
-			{
-				bkeLast = NULL;
-			}
-			bufferedKeyEventsCount--;
-		}
-	}
-
-	bool GetFirstKeyBoardEntry(DIDEVICEOBJECTDATA *dod)
-	{
-
-		if (bkeFirst != NULL)
-		{
-			memcpy(dod, &bkeFirst->dod, sizeof(DIDEVICEOBJECTDATA));
-			
-			return true;
-		}
-
-		return false;
-	}
-
-	void PushKeyboardEvent(BufferedKeyboardEvent* newEvent)
-	{
-		keyStates[newEvent->dod.dwOfs] = (BYTE)newEvent->dod.dwData;		
-
-		if (keyboardAcquired) // Ignore events if the keyboard is not acquired
-		{
-			if (bufferedKeyEventsCount == maxBufferedKeyEventsCount)
-			{
-				// Buffer would overflow - Remove the oldest entry to make space:
-				RemoveFirstKeyboardEntry();
-			}
-
-			if (bkeLast == NULL)
-			{
-				// This is the first event in the buffer
-				bkeFirst = newEvent;
-				bkeLast = newEvent;
-			}
-			else
-			{
-				// Append to buffer:
-				bkeLast->nextPtr = newEvent;
-			}
-			bufferedKeyEventsCount++;
-		}
-	}
-
 	void GetKeyNameW(DWORD dik, wchar_t* keyName)
 	{
 		const wchar_t* keyNameMapped = dikNames[dik];
@@ -360,72 +299,29 @@ public:
 		LeaveCriticalSection(&critSect);
 	}
 
+	void CheckRawInputDevices()
+	{
+		// TODO: Check for new rawinput devices
+	}
+
 	void HandleRawInput(RAWINPUT* raw)
 	{
 		Lock();
 		{
-			if (raw->header.dwType == RIM_TYPEKEYBOARD)
-			{
-				DWORD keyMapped = dikMapping[raw->data.keyboard.VKey];
-				if (keyMapped == 0x00)
-				{
-					char tmp[4096];
-					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled", raw->data.keyboard.VKey);
-					Log(tmp, __FILE__, __LINE__);
-				}
-				else if (keyMapped == 0xFF)
-				{
-					// Ignore this key
-				}
-				else
-				{
-					bool isRepeatedEvent = false;
-					DWORD dwData = ((raw->data.keyboard.Flags & RI_KEY_BREAK) > 0) ? 0 : 0x80;;
-
-					if ((lastKeyEvent.dwOfs == keyMapped) && (lastKeyEvent.dwData == dwData))
-					{
-						// Ignore repeated event
-					}
-					else
-					{
-						// Remember last key event
-						lastKeyEvent.dwOfs = keyMapped;
-						lastKeyEvent.dwData = dwData;
-
-						// Determine timestamp:
-						__int64 fTime;
-						GetSystemTimeAsFileTime((FILETIME*)&fTime);
-						fTime = fTime / 1000;
-
-						// Add keyboard event:
-						BufferedKeyboardEvent* newEvent = new BufferedKeyboardEvent();
-						newEvent->nextPtr = NULL;
-						newEvent->dod.dwData = dwData;
-						newEvent->dod.dwOfs = keyMapped;
-						newEvent->dod.dwSequence = dwSequence;
-						newEvent->dod.dwTimeStamp = (DWORD)fTime;
-						newEvent->dod.uAppData = NULL;
-
-						dwSequence++;
-						PushKeyboardEvent(newEvent);
-					}
-				}
-			}
-			else if (raw->header.dwType == RIM_TYPEMOUSE)
+			if (raw->header.dwType == RIM_TYPEMOUSE)
 			{
 				if ((raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE))
 				{
-					Log("IsAbsoluteMouse - not handled yet", __FILE__, __LINE__);					
+					Log("IsAbsoluteMouse - not handled yet", __FILE__, __LINE__);
 				}
 				else
 				{
 					mouseState->lX += raw->data.mouse.lLastX;
 					mouseState->lY += raw->data.mouse.lLastY;
 
-					if (raw->data.mouse.usButtonFlags & RI_MOUSE_HWHEEL)
+					if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 					{
-						short mouseWheelDelta = raw->data.mouse.usButtonData;
-
+						short mouseWheelDelta = (short)raw->data.mouse.usButtonData;
 						mouseState->lZ += mouseWheelDelta;
 					}
 
@@ -456,7 +352,42 @@ public:
 						mouseState->rgbButtons[2] = 0x00;
 					}
 				}
-			}			
+			}
+			else if (raw->header.dwType == RIM_TYPEKEYBOARD)
+			{
+				DWORD keyMapped = dikMapping[raw->data.keyboard.VKey];
+				if (keyMapped == 0x00)
+				{
+					char tmp[4096];
+					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled", raw->data.keyboard.VKey);
+					Log(tmp, __FILE__, __LINE__);
+				}
+				else if (keyMapped == 0xFF)
+				{
+					// 0xFF = Intentionally ignore this key
+
+					char tmp[4096];
+					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x ignored", raw->data.keyboard.VKey);
+					Log(tmp, __FILE__, __LINE__);
+				}
+				else
+				{					
+					DWORD dwData = ((raw->data.keyboard.Flags & RI_KEY_BREAK) > 0) ? 0 : 0x80;
+					keyStates[keyMapped] = (BYTE)dwData;
+				}
+			}
+			else if (raw->header.dwType == RIM_TYPEHID)
+			{
+				char tmp[4096];
+				wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled (RIM_TYPEHID)", raw->data.keyboard.VKey);
+				Log(tmp, __FILE__, __LINE__);
+			}
+			else
+			{
+				char tmp[1024];
+				wsprintfA(tmp, "Unhandled raw->header.dwType: %x", raw->header.dwType);
+				Log(tmp, __FILE__, __LINE__);
+			}
 		}
 		Unlock();
 	}

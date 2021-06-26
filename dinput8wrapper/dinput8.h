@@ -1,12 +1,19 @@
 #pragma once
 
+#define HID_USAGE_PAGE_GENERIC 0x01
+#define HID_USAGE_GENERIC_MOUSE 0x02
+#define HID_USAGE_GENERIC_JOYSTICK 0x04
+#define HID_USAGE_GENERIC_GAMEPAD 0x05
+#define HID_USAGE_GENERIC_KEYBOARD 0x06
+
 #define DEFINE_GUID2(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
         const GUID name \
                 = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
 
-DEFINE_GUID2(GUID_Key, 0x55728220, 0xD33C, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
-DEFINE_GUID2(GUID_SysMouse, 0x6F1D2B60, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
-DEFINE_GUID2(GUID_SysKeyboard, 0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+DEFINE_GUID2(GUID_Key              , 0x55728220, 0xD33C, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+DEFINE_GUID2(GUID_SysMouse         , 0x6F1D2B60, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+DEFINE_GUID2(GUID_SysKeyboard      , 0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+DEFINE_GUID2(GUID_Xbox360Controller, 0x028E045E, 0x0000, 0x0000, 0x00, 0x00, 0x50, 0x49 ,0x44, 0x56, 0x49, 0x44);
 
 #define DIPH_DEVICE             0
 #define DIPH_BYOFFSET           1
@@ -178,13 +185,25 @@ DEFINE_GUID2(GUID_SysKeyboard, 0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x4
 #define DIK_POWER   0xDE
 #define DIK_SLEEP   0xDF
 
+#define DI8DEVCLASS_ALL				0x00
+#define DI8DEVCLASS_POINTER         0x02
+#define DI8DEVCLASS_KEYBOARD        0x03
+#define DI8DEVCLASS_GAMECTRL        0x04
+#define DIDEVTYPE_HID				0x00010000L
+
 #define DI8DEVTYPE_MOUSE            0x12
 #define DI8DEVTYPE_KEYBOARD         0x13
+#define DI8DEVTYPE_JOYSTICK         0x14
+#define DI8DEVTYPE_GAMEPAD          0x15
+
+
 
 #define DI8DEVTYPEMOUSE_UNKNOWN         1
 #define DI8DEVTYPEMOUSE_TRADITIONAL     2
 
 #define DIDEVTYPEKEYBOARD_PCENH         4
+
+#define DI8DEVTYPEGAMEPAD_STANDARD      2
 
 #define DIENUM_STOP                     0
 #define DIENUM_CONTINUE                 1
@@ -219,6 +238,8 @@ HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, GUID* riidlt
 #define DIDFT_RELAXIS	0x00000001
 #define DIDFT_TGLBUTTON	0x00000008
 #define DIDFT_VENDORDEFINED	0x04000000
+
+#define DISCL_EXCLUSIVE 0x00000001
 
 typedef struct DIMOUSESTATE {
 	LONG lX;
@@ -359,12 +380,6 @@ typedef struct DIEFFESCAPE {
 	LPVOID  lpvOutBuffer;
 	DWORD   cbOutBuffer;
 } DIEFFESCAPE, * LPDIEFFESCAPE;
-
-typedef struct BufferedKeyboardEvent
-{
-	DIDEVICEOBJECTDATA dod;
-	BufferedKeyboardEvent* nextPtr;
-} BufferedKeyboardEvent;
 
 DECLARE_INTERFACE(IDirectInputEffect)
 {

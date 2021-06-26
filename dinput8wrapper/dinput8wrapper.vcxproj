@@ -59,7 +59,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>dinput8</TargetName>
-    <OutDir>$(Configuration)\</OutDir>
+    <OutDir>C:\Steam\SteamApps\common\Kane and Lynch Dead Men\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -87,6 +87,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ProgramDatabaseFile>C:\Steam\SteamApps\common\Kane and Lynch Dead Men\dinput8.pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,6 +115,7 @@
   <ItemGroup>
     <ClInclude Include="CDirectInput8A.h" />
     <ClInclude Include="CDirectInput8Globals.h" />
+    <ClInclude Include="CDirectInputDeviceGamepad8A.h" />
     <ClInclude Include="CDirectInputDeviceMouse8A.h" />
     <ClInclude Include="CDirectInputDeviceKeyboard8A.h" />
     <ClInclude Include="dinput8.h" />

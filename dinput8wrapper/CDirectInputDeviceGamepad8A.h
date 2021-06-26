@@ -1,39 +1,40 @@
 #pragma once
 
-class CDirectInputDeviceMouse8A : public IDirectInputDevice8A
+class CDirectInputDeviceGamepad8A : public IDirectInputDevice8A
 {
 private:
-	DIDEVICEINSTANCEA* mouseDeviceInfo;
+	DIDEVICEINSTANCEA* gamepadDeviceInfo;
 	DIDATAFORMAT dataFormat;
-	int refCount;
+	ULONG refCount;
 
 public:
 
-	CDirectInputDeviceMouse8A()
+	CDirectInputDeviceGamepad8A()
 	{
-		mouseDeviceInfo = new DIDEVICEINSTANCEA();
-		ZeroMemory(mouseDeviceInfo, sizeof(DIDEVICEINSTANCEA));
-		mouseDeviceInfo->dwSize = sizeof(DIDEVICEINSTANCEA);
-		mouseDeviceInfo->guidInstance = GUID_SysMouse;
-		mouseDeviceInfo->guidProduct = GUID_SysMouse;
-		mouseDeviceInfo->dwDevType = DI8DEVTYPE_MOUSE | (DI8DEVTYPEMOUSE_UNKNOWN << 8);
-		StringCbCopyA(mouseDeviceInfo->tszInstanceName, 260, "Mouse");
-		StringCbCopyA(mouseDeviceInfo->tszProductName, 260, "Mouse");
-
-		ZeroMemory(&dataFormat, sizeof(DIDATAFORMAT));
 		refCount = 1;
+
+		gamepadDeviceInfo = new DIDEVICEINSTANCEA();
+		ZeroMemory(gamepadDeviceInfo, sizeof(DIDEVICEINSTANCEA));
+		gamepadDeviceInfo->dwSize = sizeof(DIDEVICEINSTANCEA);
+		gamepadDeviceInfo->guidInstance = GUID_Xbox360Controller;
+		gamepadDeviceInfo->guidProduct = GUID_Xbox360Controller;
+		gamepadDeviceInfo->dwDevType = DIDEVTYPE_HID | DI8DEVTYPE_GAMEPAD | (DI8DEVTYPEGAMEPAD_STANDARD << 8);
+		gamepadDeviceInfo->wUsage = HID_USAGE_GENERIC_GAMEPAD;
+		gamepadDeviceInfo->wUsagePage = HID_USAGE_PAGE_GENERIC;
+		StringCbCopyA(gamepadDeviceInfo->tszInstanceName, 260, "Controller (Gamepad XBox360)");
+		StringCbCopyA(gamepadDeviceInfo->tszProductName, 260, "Controller (Gamepad XBox360)");
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(GUID* riid, LPVOID* ppvObj)
 	{
-		diGlobalsInstance->Log("MouseDevice->QueryInterface()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->QueryInterface()", __FILE__, __LINE__);
 
 		return S_OK;
 	};
 
 	virtual ULONG __stdcall AddRef()
 	{
-		diGlobalsInstance->Log("MouseDevice->AddRef()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->AddRef()", __FILE__, __LINE__);
 		refCount++;
 
 		return refCount;
@@ -41,7 +42,7 @@ public:
 
 	virtual ULONG __stdcall Release()
 	{
-		diGlobalsInstance->Log("MouseDevice->Release()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->Release()", __FILE__, __LINE__);
 
 		refCount--;
 
@@ -50,13 +51,13 @@ public:
 
 
 	virtual HRESULT STDMETHODCALLTYPE GetCapabilities(LPDIDEVCAPS lpDIDevCaps) {
-		diGlobalsInstance->Log("MouseDevice->GetCapabilities()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetCapabilities()", __FILE__, __LINE__);
 
 		lpDIDevCaps->dwFlags = DIDC_ATTACHED | DIDC_EMULATED;
-		lpDIDevCaps->dwDevType = mouseDeviceInfo->dwDevType;
-		lpDIDevCaps->dwAxes = 3;
-		lpDIDevCaps->dwButtons = 3;
-		lpDIDevCaps->dwPOVs = 0;
+		lpDIDevCaps->dwDevType = gamepadDeviceInfo->dwDevType;
+		lpDIDevCaps->dwAxes = 5;
+		lpDIDevCaps->dwButtons = 10;
+		lpDIDevCaps->dwPOVs = 1;
 		lpDIDevCaps->dwFFSamplePeriod = 0;
 		lpDIDevCaps->dwFFMinTimeResolution = 0;
 		lpDIDevCaps->dwFirmwareRevision = 0;
@@ -68,25 +69,25 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags) {
 
-		diGlobalsInstance->Log("MouseDevice->EnumObjects()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->EnumObjects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetProperty(GUID* rguidProp, LPDIPROPHEADER pdiph) {
-		diGlobalsInstance->Log("MouseDevice->GetProperty()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetProperty()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SetProperty(GUID* rguidProp, LPCDIPROPHEADER pdiph) {
-		diGlobalsInstance->Log("MouseDevice->SetProperty()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SetProperty()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Acquire() {
-		//diGlobalsInstance->Log("MouseDevice->Acquire()", __FILE__, __LINE__);
+		//diGlobalsInstance->Log("GamepadDevice->Acquire()", __FILE__, __LINE__);
 
 		HWND hWnd = GetForegroundWindow();
 		SetCapture(hWnd);
@@ -95,7 +96,7 @@ public:
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Unacquire() {
-		//diGlobalsInstance->Log("MouseDevice->Unacquire()", __FILE__, __LINE__);
+		//diGlobalsInstance->Log("GamepadDevice->Unacquire()", __FILE__, __LINE__);
 
 		ReleaseCapture();
 
@@ -103,25 +104,13 @@ public:
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetDeviceState(DWORD cbData, LPVOID lpvData) {
-		//diGlobalsInstance->Log("MouseDevice->GetDeviceState()");
-
-		diGlobalsInstance->Lock();
-		{
-			// Copy current state to lpvData
-			memcpy(lpvData, diGlobalsInstance->mouseState, sizeof(DIMOUSESTATE));
-
-			// Reset current state:
-			diGlobalsInstance->mouseState->lX = 0;
-			diGlobalsInstance->mouseState->lY = 0;
-			diGlobalsInstance->mouseState->lZ = 0;
-		}
-		diGlobalsInstance->Unlock();
+		diGlobalsInstance->Log("GamepadDevice->GetDeviceState()",__FILE__,__LINE__);		
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags) {
-		diGlobalsInstance->Log("MouseDevice->GetDeviceData()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetDeviceData()", __FILE__, __LINE__);
 
 		*pdwInOut = 0;
 
@@ -130,153 +119,145 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE SetDataFormat(LPCDIDATAFORMAT lpdf)
 	{
-		diGlobalsInstance->Log("MouseDevice->SetDataFormat()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SetDataFormat()", __FILE__, __LINE__);
 		memcpy(&dataFormat, lpdf, sizeof(DIDATAFORMAT));
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SetEventNotification(HANDLE hEvent)
 	{
-		diGlobalsInstance->Log("MouseDevice->SetEventNotification()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SetEventNotification()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 	{
-		if (dwFlags & DISCL_EXCLUSIVE)
-		{
-			ShowCursor(false);
-		}
-		else {
-			ShowCursor(true);
-		}
-
-		diGlobalsInstance->Log("MouseDevice->SetCooperativeLevel()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SetCooperativeLevel()", __FILE__, __LINE__);
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
 	{
-		diGlobalsInstance->Log("MouseDevice->GetObjectInfo()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetObjectInfo()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetDeviceInfo(LPDIDEVICEINSTANCEA pdidi)
 	{
-		diGlobalsInstance->Log("MouseDevice->GetDeviceInfo()", __FILE__, __LINE__);
-		memcpy(pdidi, mouseDeviceInfo, sizeof(DIDEVICEINSTANCEA));
+		diGlobalsInstance->Log("GamepadDevice->GetDeviceInfo()", __FILE__, __LINE__);
+		memcpy(pdidi, gamepadDeviceInfo, sizeof(DIDEVICEINSTANCEA));
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE RunControlPanel(HWND hwndOwner, DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->RunControlPanel()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->RunControlPanel()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Initialize(HINSTANCE hInst, DWORD dwVersion, GUID* rguid)
 	{
-		diGlobalsInstance->Log("MouseDevice->Initialize()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->Initialize()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE CreateEffect(GUID* rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT* ppdeff, LPUNKNOWN punkOuter)
 	{
-		diGlobalsInstance->Log("MouseDevice->CreateEffect()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->CreateEffect()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE EnumEffects(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
 	{
-		diGlobalsInstance->Log("MouseDevice->EnumEffects()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->EnumEffects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetEffectInfo(LPDIEFFECTINFOA pdei, GUID* rguid)
 	{
-		diGlobalsInstance->Log("MouseDevice->GetEffectInfo()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetEffectInfo()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetForceFeedbackState(LPDWORD pdwOut)
 	{
-		diGlobalsInstance->Log("MouseDevice->GetForceFeedbackState()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetForceFeedbackState()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SendForceFeedbackCommand(DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->SendForceFeedbackCommand()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SendForceFeedbackCommand()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback, LPVOID pvRef, DWORD fl)
 	{
-		diGlobalsInstance->Log("MouseDevice->EnumCreatedEffectObjects()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->EnumCreatedEffectObjects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Escape(LPDIEFFESCAPE pesc)
 	{
-		diGlobalsInstance->Log("MouseDevice->Escape()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->Escape()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Poll() {
-		//diGlobalsInstance->Log("MouseDevice->Poll()", __FILE__, __LINE__);
+		//diGlobalsInstance->Log("GamepadDevice->Poll()", __FILE__, __LINE__);
 
 		return DI_NOEFFECT;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD fl) {
-		diGlobalsInstance->Log("MouseDevice->SendDeviceData()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SendDeviceData()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->EnumEffectsInFile()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->EnumEffectsInFile()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->WriteEffectToFile()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->WriteEffectToFile()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->BuildActionMap()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->BuildActionMap()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
 	{
-		diGlobalsInstance->Log("MouseDevice->SetActionMap()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->SetActionMap()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERA lpdiDevImageInfoHeader)
 	{
-		diGlobalsInstance->Log("MouseDevice->GetImageInfo()", __FILE__, __LINE__);
+		diGlobalsInstance->Log("GamepadDevice->GetImageInfo()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}

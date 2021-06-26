@@ -110,17 +110,7 @@ public:
 			wsprintfA(tmp, "KeyboardDevice->SetProperty(): DI_BUFFERSIZE (dwData=%u)", propDword->dwData);
 			diGlobalsInstance->Log(tmp, __FILE__, __LINE__);
 
-			diGlobalsInstance->Lock();
-			{
-				diGlobalsInstance->maxBufferedKeyEventsCount = propDword->dwData;
-
-				// Clear buffered keys:                
-				while (diGlobalsInstance->bufferedKeyEventsCount > 0)
-				{
-					diGlobalsInstance->RemoveFirstKeyboardEntry();
-				}
-			}
-			diGlobalsInstance->Unlock();
+			// Currently ignored
 
 			return DI_OK;
 		}
@@ -198,27 +188,42 @@ public:
 			else if ((*pdwInOut == INFINITE) && (rgdod == NULL))
 			{
 				// Flush buffer:
-				//diGlobalsInstance->Log("KeyboardDevice->GetDeviceData() flushing buffer", __FILE__, __LINE__);
+				diGlobalsInstance->Log("KeyboardDevice->GetDeviceData() flushing buffer", __FILE__, __LINE__);
 
-				while (diGlobalsInstance->bufferedKeyEventsCount > 0)
-				{
-					diGlobalsInstance->RemoveFirstKeyboardEntry();
-					dwOut++;
-				}
+				ZeroMemory(diGlobalsInstance->keyStates, sizeof(diGlobalsInstance->keyStates));
+				ZeroMemory(diGlobalsInstance->gameKeyStates, sizeof(diGlobalsInstance->gameKeyStates));
 			}
 			else
 			{
-				// We actually only return one entry here, even if we could return more
-				// returning all possible items according to cbObjectData sometimes crashes games (unknown reason)
+				memset(rgdod, 0, *pdwInOut * sizeof(DIDEVICEOBJECTDATA));
 
-				if (diGlobalsInstance->GetFirstKeyBoardEntry(rgdod))
+				for (DWORD i = 0; i < *pdwInOut; i++)
 				{
-					if (!peekOnly)
+					// Check if there is a changed key
+					for (int k = 0; k < 256; k++)
 					{
-						diGlobalsInstance->RemoveFirstKeyboardEntry();
-					}
+						if (diGlobalsInstance->keyStates[k] != diGlobalsInstance->gameKeyStates[k])
+						{						
 
-					dwOut++;
+							// Determine timestamp:
+							__int64 fTime;
+							GetSystemTimeAsFileTime((FILETIME*)&fTime);
+							fTime = fTime / 1000;
+
+							rgdod[i].dwData = diGlobalsInstance->keyStates[k];
+							rgdod[i].dwOfs = k;
+							rgdod[i].dwSequence = diGlobalsInstance->dwSequence;
+							rgdod[i].dwTimeStamp = (DWORD)fTime;
+							rgdod[i].uAppData = NULL;
+
+							diGlobalsInstance->dwSequence++;
+
+							diGlobalsInstance->gameKeyStates[k] = diGlobalsInstance->keyStates[k];
+
+							dwOut++;
+							k = 256;
+						}
+					}
 				}
 			}
 		}
@@ -328,7 +333,7 @@ public:
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Poll() {
-		//diGlobalsInstance->Log("[dinput8] KeyboardDevice->Poll()" , __FILE__, __LINE__);
+		diGlobalsInstance->Log("[dinput8] KeyboardDevice->Poll()" , __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
