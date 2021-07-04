@@ -1,5 +1,5 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
-#include "pch.h"
+#include "dllmain.h"
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -40,11 +40,22 @@ extern "C" LPCDIDATAFORMAT WINAPI GetdfDIJoystick() {
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, GUID* riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter)
 {
+    LoadHidLibrary();
+
     IID IID_IDirectInput8A = { 0xBF798030, 0x483A, 0x4DA2, 0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00 };
+    IID IID_IDirectInput8W = { 0xBF798031, 0x483A, 0x4DA2, 0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00 };
 
     if (IsEqualIID(IID_IDirectInput8A, *riidltf))
     {
         CDirectInput8A* obj = new CDirectInput8A();
+
+        *ppvOut = obj;
+
+        return DI_OK;
+    }
+    else if (IsEqualIID(IID_IDirectInput8W, *riidltf))
+    {
+        CDirectInput8W* obj = new CDirectInput8W();
 
         *ppvOut = obj;
 

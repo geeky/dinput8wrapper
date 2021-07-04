@@ -9,22 +9,25 @@ private:
 
 public:
 
+	bool enableGamepadSupport = false;
+
 	// Sequence number for keyboard actions
 	DWORD dwSequence;
 
+	// Has the game the keyboard acquired?
 	bool keyboardAcquired = false;
 
 	// Key-States received via WM_INPUT / Raw-Input
 	BYTE keyStates[256];
 
-	// Key-States sent to the game
+	// Key-States actually sent to the game
 	BYTE gameKeyStates[256];
 		
 	// Current Mouse-State
-	DIMOUSESTATE* mouseState = new DIMOUSESTATE();	
+	DIMOUSESTATE* mouseState = new DIMOUSESTATE();
 		
 
-	void Log(LPCSTR LogLine, LPCTSTR file, int line)
+	void LogA(LPCSTR LogLine, LPCTSTR file, int line, ...)
 	{
 		int flen = strlen(file) - 1;
 
@@ -33,11 +36,16 @@ public:
 			flen--;
 		}
 		flen++;
-
 		LPCTSTR filePtr = file + flen;
 
+		va_list args;
+		va_start(args, line);
+		char tmp2[4096];
+		wvsprintfA(tmp2, LogLine, args);
+		va_end(args);
+		
 		char tmp[4096];
-		StringCbPrintfA(tmp, 4096, "[dinput8][%s:%u] %s\r\n",filePtr,line,LogLine);
+		StringCbPrintfA(tmp, 4096, "[dinput8][%s:%u] %s\r\n",filePtr,line,tmp2);
 		OutputDebugStringA(tmp);
 	}
 
@@ -289,6 +297,19 @@ public:
 		}
 	}
 
+	void GetKeyNameA(DWORD dik, char* keyName)
+	{
+		wchar_t keyNameW[4096];
+
+		GetKeyNameW(dik, keyNameW);
+		ToAnsi(keyNameW, keyName);
+	}
+
+	void ToAnsi(wchar_t* inputString, char* outputString)
+	{
+		WideCharToMultiByte(CP_ACP, 0, inputString, -1, outputString, 4096, NULL, NULL);
+	}
+
 	void Lock()
 	{
 		EnterCriticalSection(&critSect);
@@ -312,7 +333,7 @@ public:
 			{
 				if ((raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE))
 				{
-					Log("IsAbsoluteMouse - not handled yet", __FILE__, __LINE__);
+					LogA("IsAbsoluteMouse - not handled yet", __FILE__, __LINE__);
 				}
 				else
 				{
@@ -360,33 +381,140 @@ public:
 				{
 					char tmp[4096];
 					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled", raw->data.keyboard.VKey);
-					Log(tmp, __FILE__, __LINE__);
+					LogA(tmp, __FILE__, __LINE__);
 				}
 				else if (keyMapped == 0xFF)
 				{
 					// 0xFF = Intentionally ignore this key
 
-					char tmp[4096];
-					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x ignored", raw->data.keyboard.VKey);
-					Log(tmp, __FILE__, __LINE__);
+					LogA("[dinput8] VirtualKeyCode % x ignored", __FILE__, __LINE__, raw->data.keyboard.VKey);
 				}
 				else
-				{					
+				{
 					DWORD dwData = ((raw->data.keyboard.Flags & RI_KEY_BREAK) > 0) ? 0 : 0x80;
 					keyStates[keyMapped] = (BYTE)dwData;
 				}
 			}
-			else if (raw->header.dwType == RIM_TYPEHID)
+			else if ((raw->header.dwType == RIM_TYPEHID) && (this->enableGamepadSupport)) // Gamepads/Joysticks
 			{
-				char tmp[4096];
-				wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled (RIM_TYPEHID)", raw->data.keyboard.VKey);
-				Log(tmp, __FILE__, __LINE__);
+				UINT preparsedDataBufferSize = 0;
+				if (GetRawInputDeviceInfo(raw->header.hDevice, RIDI_PREPARSEDDATA, NULL, &preparsedDataBufferSize) != 0)
+				{
+					DebugBreak();
+				}
+
+				PHIDP_PREPARSED_DATA preparsedDataBuffer = (PHIDP_PREPARSED_DATA)malloc(preparsedDataBufferSize);
+				if (GetRawInputDeviceInfo(raw->header.hDevice, RIDI_PREPARSEDDATA, preparsedDataBuffer, &preparsedDataBufferSize) >= 0)
+				{
+					HIDP_CAPS* caps = new HIDP_CAPS();
+					NTSTATUS rv = HidP_GetCaps(preparsedDataBuffer, caps);
+					if (rv == HIDP_STATUS_SUCCESS)
+					{
+
+						char tmp[1024];
+						wsprintfA(tmp, "usagePageA: %i (%x)\r\n", caps->UsagePage, caps->UsagePage);
+						OutputDebugStringA(tmp);
+
+						if (true)
+						{
+							HIDP_BUTTON_CAPS* buttonCaps = new HIDP_BUTTON_CAPS[caps->NumberInputButtonCaps];
+							USHORT ButtonCapsLength = caps->NumberInputButtonCaps;
+							NTSTATUS rv2 = HidP_GetButtonCaps(HidP_Input, buttonCaps, &ButtonCapsLength, preparsedDataBuffer);
+							if (rv == HIDP_STATUS_SUCCESS)
+							{
+								for (int buttonCapIndex = 0; buttonCapIndex < caps->NumberInputButtonCaps; buttonCapIndex++)
+								{
+									char tmp[1024];
+									wsprintfA(tmp, "usagePageB: %i\r\n", buttonCaps[buttonCapIndex].UsagePage);
+									OutputDebugStringA(tmp);
+
+									for (DWORD hidInputIndex = 0; hidInputIndex < raw->data.hid.dwCount; hidInputIndex++)
+									{
+										PCHAR hidReportPtr = (PCHAR)&raw->data.hid.bRawData[0];
+										hidReportPtr += (hidInputIndex * raw->data.hid.dwSizeHid);
+
+										ULONG usageLength = 0;
+										NTSTATUS guResult = HidP_GetUsages(HidP_Input, buttonCaps->UsagePage, 0, NULL, &usageLength, preparsedDataBuffer, hidReportPtr, raw->data.hid.dwSizeHid);
+										if (guResult == HIDP_STATUS_BUFFER_TOO_SMALL)
+										{
+											USAGE* usages = new USAGE[usageLength];
+
+											NTSTATUS guResult = HidP_GetUsages(HidP_Input, buttonCaps->UsagePage, 0, usages, &usageLength, preparsedDataBuffer, hidReportPtr, raw->data.hid.dwSizeHid);
+											if (guResult == HIDP_STATUS_SUCCESS)
+											{
+												for (ULONG usageIndex = 0; usageIndex <= usageLength; usageIndex++)
+												{
+
+													if (buttonCaps->UsagePage == 0x09) // Gamepad
+													{
+														if (usages[usageIndex] == 0x01) // A
+														{
+
+														}
+													}
+
+													LogA("Button pressed: %i (usagePage: %i)", __FILE__, __LINE__, usages[usageIndex], buttonCaps->UsagePage);
+
+
+												}
+											}
+											else if (guResult == HIDP_STATUS_INVALID_REPORT_LENGTH)
+											{
+												DebugBreak();
+											}
+											else if (guResult == HIDP_STATUS_INVALID_REPORT_TYPE)
+											{
+												DebugBreak();
+											}
+											else if (guResult == HIDP_STATUS_BUFFER_TOO_SMALL)
+											{
+												DebugBreak();
+											}
+											else if (guResult == HIDP_STATUS_INCOMPATIBLE_REPORT_ID)
+											{
+												DebugBreak();
+											}
+											else if (guResult == HIDP_STATUS_INVALID_PREPARSED_DATA)
+											{
+												DebugBreak();
+											}
+											else if (guResult == HIDP_STATUS_USAGE_NOT_FOUND)
+											{
+												DebugBreak();
+											}
+											else {
+												DebugBreak();
+											}
+
+											delete usages;
+										}
+									}
+								}
+
+								//DebugBreak();
+							}
+							else {
+								DebugBreak();
+							}
+						}
+					}
+					else if (rv == HIDP_STATUS_INVALID_PREPARSED_DATA)
+					{
+						DebugBreak();
+					}
+					else {
+						DebugBreak();
+					}
+				}
+				else {
+					DebugBreak();
+				}
 			}
 			else
 			{
 				char tmp[1024];
 				wsprintfA(tmp, "Unhandled raw->header.dwType: %x", raw->header.dwType);
-				Log(tmp, __FILE__, __LINE__);
+				LogA(tmp, __FILE__, __LINE__);
 			}
 		}
 		Unlock();

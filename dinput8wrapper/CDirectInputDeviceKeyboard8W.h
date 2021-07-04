@@ -1,22 +1,22 @@
 #pragma once
 
-class CDirectInputDeviceKeyboard8A : public IDirectInputDevice8A, public CDirectInputDeviceKeyboard8
+class CDirectInputDeviceKeyboard8W : public IDirectInputDevice8W, public CDirectInputDeviceKeyboard8
 {
 private:
-	DIDEVICEINSTANCEA* keyboardDeviceInfo;	
+	DIDEVICEINSTANCEW* keyboardDeviceInfo;	
 
 public:
 
-	CDirectInputDeviceKeyboard8A() : CDirectInputDeviceKeyboard8()
+	CDirectInputDeviceKeyboard8W() : CDirectInputDeviceKeyboard8()
 	{		
-		keyboardDeviceInfo = new DIDEVICEINSTANCEA();
-		ZeroMemory(keyboardDeviceInfo, sizeof(DIDEVICEINSTANCEA));
-		keyboardDeviceInfo->dwSize = sizeof(DIDEVICEINSTANCEA);
+		keyboardDeviceInfo = new DIDEVICEINSTANCEW();
+		ZeroMemory(keyboardDeviceInfo, sizeof(DIDEVICEINSTANCEW));
+		keyboardDeviceInfo->dwSize = sizeof(DIDEVICEINSTANCEW);
 		keyboardDeviceInfo->guidInstance = GUID_SysKeyboard;
 		keyboardDeviceInfo->guidProduct = GUID_SysKeyboard;
 		keyboardDeviceInfo->dwDevType = DI8DEVTYPE_KEYBOARD | (DIDEVTYPEKEYBOARD_PCENH << 8);
-		StringCbCopyA(keyboardDeviceInfo->tszInstanceName, 260, "Keyboard");
-		StringCbCopyA(keyboardDeviceInfo->tszProductName, 260, "Keyboard");
+		StringCbCopyW(keyboardDeviceInfo->tszInstanceName, 260, L"Keyboard");
+		StringCbCopyW(keyboardDeviceInfo->tszProductName, 260, L"Keyboard");
 
 		this->dwDevType = keyboardDeviceInfo->dwDevType;
 	}
@@ -131,17 +131,71 @@ public:
 
 
 
-	virtual HRESULT STDMETHODCALLTYPE EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	virtual HRESULT STDMETHODCALLTYPE EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) {
 
 		diGlobalsInstance->LogA("KeyboardDevice->EnumObjects()", __FILE__, __LINE__);
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
+	virtual HRESULT STDMETHODCALLTYPE GetObjectInfo(LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
 	{
-		diGlobalsInstance->LogA("KeyboardDevice->GetObjectInfo(dwObj: %x, dwHow: %x)", __FILE__, __LINE__,dwObj,dwHow);
+		diGlobalsInstance->LogA("KeyboardDevice->GetObjectInfo()", __FILE__, __LINE__);
 
 		ZeroMemory(pdidoi, sizeof(DIDEVICEOBJECTINSTANCEW));
+
+		char tmp[4096];
+		wsprintfA(tmp, "dwHow: %i, dwObj: %i \r\n", dwHow, dwObj);
+		OutputDebugStringA(tmp);
 
 		// dwHow: 1, dwObj: 200 
 
@@ -151,64 +205,64 @@ public:
 			pdidoi->guidType = GUID_Key;
 			pdidoi->dwOfs = dwObj;
 			pdidoi->dwType = DIDFT_BUTTON;
-			diGlobalsInstance->GetKeyNameA(dwObj, pdidoi->tszName);
+			diGlobalsInstance->GetKeyNameW(dwObj, pdidoi->tszName);
 			return DI_OK;
 		}
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetDeviceInfo(LPDIDEVICEINSTANCEA pdidi)
+	virtual HRESULT STDMETHODCALLTYPE GetDeviceInfo(LPDIDEVICEINSTANCEW pdidi)
 	{
 		diGlobalsInstance->LogA("KeyboardDevice->GetDeviceInfo()", __FILE__, __LINE__);
-		memcpy(pdidi, keyboardDeviceInfo, sizeof(DIDEVICEINSTANCEA));
+		memcpy(pdidi, keyboardDeviceInfo, sizeof(DIDEVICEINSTANCEW));
 
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE EnumEffects(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
+	virtual HRESULT STDMETHODCALLTYPE EnumEffects(LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
 	{
 		diGlobalsInstance->LogA("KeyboardDevice->EnumEffects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetEffectInfo(LPDIEFFECTINFOA pdei, GUID* rguid)
+	virtual HRESULT STDMETHODCALLTYPE GetEffectInfo(LPDIEFFECTINFOW pdei, GUID* rguid)
 	{
 		diGlobalsInstance->LogA("KeyboardDevice->GetEffectInfo()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->EnumEffectsInFile()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->WriteEffectToFile()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->BuildActionMap()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->SetActionMap()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERA lpdiDevImageInfoHeader)
+	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERW lpdiDevImageInfoHeader)
 	{
 		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->GetImageInfo()", __FILE__, __LINE__);
 

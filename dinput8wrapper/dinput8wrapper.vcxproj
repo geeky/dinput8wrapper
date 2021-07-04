@@ -59,7 +59,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>dinput8</TargetName>
-    <OutDir>C:\Steam\SteamApps\common\Kane and Lynch Dead Men\</OutDir>
+    <OutDir>C:\Steam\steamapps\common\Kane and Lynch Dead Men</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -72,8 +72,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;DINPUT8WRAPPER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -113,21 +114,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CDirectInput8.h" />
     <ClInclude Include="CDirectInput8A.h" />
     <ClInclude Include="CDirectInput8Globals.h" />
+    <ClInclude Include="CDirectInput8W.h" />
+    <ClInclude Include="CDirectInputDeviceGamepad8.h" />
     <ClInclude Include="CDirectInputDeviceGamepad8A.h" />
+    <ClInclude Include="CDirectInputDeviceGamepad8W.h" />
+    <ClInclude Include="CDirectInputDeviceKeyboard8.h" />
+    <ClInclude Include="CDirectInputDeviceKeyboard8W.h" />
+    <ClInclude Include="CDirectInputDeviceMouse8.h" />
     <ClInclude Include="CDirectInputDeviceMouse8A.h" />
     <ClInclude Include="CDirectInputDeviceKeyboard8A.h" />
+    <ClInclude Include="CDirectInputDeviceMouse8W.h" />
     <ClInclude Include="dinput8.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="hid.h" />
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput8.def" />

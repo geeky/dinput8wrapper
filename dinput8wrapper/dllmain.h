@@ -12,12 +12,26 @@
 #include <strsafe.h>
 #include "dinput8.h"
 
+#include "hid.h"
+
 static HMODULE DllHModule;
 
 #include "CDirectInput8Globals.h"
+
+#include "CDirectInputDeviceMouse8.h"
 #include "CDirectInputDeviceMouse8A.h"
+#include "CDirectInputDeviceMouse8W.h"
+
+#include "CDirectInputDeviceKeyboard8.h"
 #include "CDirectInputDeviceKeyboard8A.h"
+#include "CDirectInputDeviceKeyboard8W.h"
+
+#include "CDirectInputDeviceGamepad8.h"
 #include "CDirectInputDeviceGamepad8A.h"
+#include "CDirectInputDeviceGamepad8W.h"
+
+#include "CDirectInput8.h"
 #include "CDirectInput8A.h"
+#include "CDirectInput8W.h"
 
 #endif //PCH_H

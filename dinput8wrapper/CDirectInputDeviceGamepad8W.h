@@ -1,15 +1,15 @@
 #pragma once
 
-class CDirectInputDeviceGamepad8A : public CDirectInputDeviceGamepad8, public IDirectInputDevice8A
+class CDirectInputDeviceGamepad8W : public CDirectInputDeviceGamepad8, public IDirectInputDevice8W
 {
 private:
-	DIDEVICEINSTANCEA* gamepadDeviceInfo;
+	DIDEVICEINSTANCEW* gamepadDeviceInfo;
 
 public:
 
-	CDirectInputDeviceGamepad8A() : CDirectInputDeviceGamepad8()
+	CDirectInputDeviceGamepad8W() : CDirectInputDeviceGamepad8()
 	{
-		gamepadDeviceInfo = new DIDEVICEINSTANCEA();
+		gamepadDeviceInfo = new DIDEVICEINSTANCEW();
 		ZeroMemory(gamepadDeviceInfo, sizeof(DIDEVICEINSTANCEA));
 		gamepadDeviceInfo->dwSize = sizeof(DIDEVICEINSTANCEA);
 		gamepadDeviceInfo->guidInstance = GUID_Xbox360Controller;
@@ -17,8 +17,8 @@ public:
 		gamepadDeviceInfo->dwDevType = DIDEVTYPE_HID | DI8DEVTYPE_GAMEPAD | (DI8DEVTYPEGAMEPAD_STANDARD << 8);
 		gamepadDeviceInfo->wUsage = HID_USAGE_GENERIC_GAMEPAD;
 		gamepadDeviceInfo->wUsagePage = HID_USAGE_PAGE_GENERIC;
-		StringCbCopyA(gamepadDeviceInfo->tszInstanceName, 260, "Controller (Gamepad XBox360)");
-		StringCbCopyA(gamepadDeviceInfo->tszProductName, 260, "Controller (Gamepad XBox360)");
+		StringCbCopyW(gamepadDeviceInfo->tszInstanceName, 260, L"Controller (Gamepad XBox360)");
+		StringCbCopyW(gamepadDeviceInfo->tszProductName, 260, L"Controller (Gamepad XBox360)");
 
 		this->dwDevType = gamepadDeviceInfo->dwDevType;
 	}
@@ -94,7 +94,7 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE CreateEffect(GUID* rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT* ppdeff, LPUNKNOWN punkOuter)
 	{
-		return Base_CreateEffect(rguid, lpeff,  ppdeff, punkOuter);
+		return Base_CreateEffect(rguid, lpeff, ppdeff, punkOuter);
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetForceFeedbackState(LPDWORD pdwOut)
@@ -129,93 +129,71 @@ public:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	virtual HRESULT STDMETHODCALLTYPE EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags) {
+	virtual HRESULT STDMETHODCALLTYPE EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) {
 
 		diGlobalsInstance->LogA("GamepadDevice->EnumObjects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
+	virtual HRESULT STDMETHODCALLTYPE GetObjectInfo(LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->GetObjectInfo()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetDeviceInfo(LPDIDEVICEINSTANCEA pdidi)
+	virtual HRESULT STDMETHODCALLTYPE GetDeviceInfo(LPDIDEVICEINSTANCEW pdidi)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->GetDeviceInfo()", __FILE__, __LINE__);
-		memcpy(pdidi, gamepadDeviceInfo, sizeof(DIDEVICEINSTANCEA));
+		memcpy(pdidi, gamepadDeviceInfo, sizeof(DIDEVICEINSTANCEW));
 
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE EnumEffects(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
+	virtual HRESULT STDMETHODCALLTYPE EnumEffects(LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->EnumEffects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetEffectInfo(LPDIEFFECTINFOA pdei, GUID* rguid)
+	virtual HRESULT STDMETHODCALLTYPE GetEffectInfo(LPDIEFFECTINFOW pdei, GUID* rguid)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->GetEffectInfo()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->EnumEffectsInFile()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->WriteEffectToFile()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->BuildActionMap()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
+	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->SetActionMap()", __FILE__, __LINE__);
 
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERA lpdiDevImageInfoHeader)
+	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERW lpdiDevImageInfoHeader)
 	{
 		diGlobalsInstance->LogA("GamepadDevice->GetImageInfo()", __FILE__, __LINE__);
 

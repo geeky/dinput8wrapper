@@ -280,6 +280,24 @@ typedef struct DIDEVICEOBJECTINSTANCEA {
 	WORD    wReportId;
 } DIDEVICEOBJECTINSTANCEA, * LPDIDEVICEOBJECTINSTANCEA;
 
+typedef struct DIDEVICEOBJECTINSTANCEW {
+	DWORD   dwSize;
+	GUID    guidType;
+	DWORD   dwOfs;
+	DWORD   dwType;
+	DWORD   dwFlags;
+	WCHAR   tszName[MAX_PATH];
+	DWORD   dwFFMaxForce;
+	DWORD   dwFFForceResolution;
+	WORD    wCollectionNumber;
+	WORD    wDesignatorIndex;
+	WORD    wUsagePage;
+	WORD    wUsage;
+	DWORD   dwDimension;
+	WORD    wExponent;
+	WORD    wReportId;
+} DIDEVICEOBJECTINSTANCEW, * LPDIDEVICEOBJECTINSTANCEW;
+
 typedef struct DIPROPHEADER {
 	DWORD   dwSize;
 	DWORD   dwHeaderSize;
@@ -302,6 +320,9 @@ typedef const DIPROPSTRING* LPCDIPROPSTRING;
 
 typedef const DIDEVICEOBJECTINSTANCEA* LPCDIDEVICEOBJECTINSTANCEA;
 typedef BOOL(FAR PASCAL* LPDIENUMDEVICEOBJECTSCALLBACKA)(LPCDIDEVICEOBJECTINSTANCEA, LPVOID);
+
+typedef const DIDEVICEOBJECTINSTANCEW* LPCDIDEVICEOBJECTINSTANCEW;
+typedef BOOL(FAR PASCAL* LPDIENUMDEVICEOBJECTSCALLBACKW)(LPCDIDEVICEOBJECTINSTANCEW, LPVOID);
 
 typedef struct DIDEVICEOBJECTDATA {
 	DWORD       dwOfs;
@@ -342,6 +363,19 @@ typedef struct DIDEVICEINSTANCEA {
 	WORD    wUsage;
 } DIDEVICEINSTANCEA, * LPDIDEVICEINSTANCEA;
 typedef const DIDEVICEINSTANCEA* LPCDIDEVICEINSTANCEA;
+
+typedef struct DIDEVICEINSTANCEW {
+	DWORD   dwSize;
+	GUID    guidInstance;
+	GUID    guidProduct;
+	DWORD   dwDevType;
+	WCHAR   tszInstanceName[MAX_PATH];
+	WCHAR   tszProductName[MAX_PATH];
+	GUID    guidFFDriver;
+	WORD    wUsagePage;
+	WORD    wUsage;
+} DIDEVICEINSTANCEW, * LPDIDEVICEINSTANCEW;
+typedef const DIDEVICEINSTANCEW* LPCDIDEVICEINSTANCEW;
 
 typedef struct DIENVELOPE {
 	DWORD dwSize;                   /* sizeof(DIENVELOPE)   */
@@ -414,8 +448,20 @@ typedef struct DIEFFECTINFOA {
 
 typedef const DIEFFECTINFOA* LPCDIEFFECTINFOA;
 typedef BOOL(FAR PASCAL* LPDIENUMEFFECTSCALLBACKA)(LPCDIEFFECTINFOA, LPVOID);
-
 typedef BOOL(FAR PASCAL* LPDIENUMCREATEDEFFECTOBJECTSCALLBACK)(LPDIRECTINPUTEFFECT, LPVOID);
+
+
+typedef struct DIEFFECTINFOW {
+	DWORD   dwSize;
+	GUID    guid;
+	DWORD   dwEffType;
+	DWORD   dwStaticParams;
+	DWORD   dwDynamicParams;
+	WCHAR    tszName[MAX_PATH];
+} DIEFFECTINFOW, * LPDIEFFECTINFOW;
+
+typedef const DIEFFECTINFOW* LPCDIEFFECTINFOW;
+typedef BOOL(FAR PASCAL* LPDIENUMEFFECTSCALLBACKW)(LPCDIEFFECTINFOW, LPVOID);
 
 typedef struct DIFILEEFFECT {
 	DWORD       dwSize;
@@ -441,6 +487,19 @@ typedef struct _DIACTIONA {
 	OPTIONAL    DWORD       dwHow;
 } DIACTIONA, * LPDIACTIONA;
 
+typedef struct _DIACTIONW {
+	UINT_PTR    uAppData;
+	DWORD       dwSemantic;
+	OPTIONAL    DWORD       dwFlags;
+	OPTIONAL    union {
+		LPCWSTR     lptszActionName;
+		UINT        uResIdString;
+	};
+	OPTIONAL    GUID        guidInstance;
+	OPTIONAL    DWORD       dwObjID;
+	OPTIONAL    DWORD       dwHow;
+} DIACTIONW, * LPDIACTIONW;
+
 typedef struct _DIACTIONFORMATA {
 	DWORD       dwSize;
 	DWORD       dwActionSize;
@@ -458,6 +517,23 @@ typedef struct _DIACTIONFORMATA {
 	CHAR        tszActionMap[MAX_PATH];
 } DIACTIONFORMATA, * LPDIACTIONFORMATA;
 
+typedef struct _DIACTIONFORMATW {
+	DWORD       dwSize;
+	DWORD       dwActionSize;
+	DWORD       dwDataSize;
+	DWORD       dwNumActions;
+	LPDIACTIONW rgoAction;
+	GUID        guidActionMap;
+	DWORD       dwGenre;
+	DWORD       dwBufferSize;
+	OPTIONAL    LONG        lAxisMin;
+	OPTIONAL    LONG        lAxisMax;
+	OPTIONAL    HINSTANCE   hInstString;
+	FILETIME    ftTimeStamp;
+	DWORD       dwCRC;
+	WCHAR       tszActionMap[MAX_PATH];
+} DIACTIONFORMATW, * LPDIACTIONFORMATW;
+
 typedef struct _DIDEVICEIMAGEINFOA {
 	CHAR        tszImagePath[MAX_PATH];
 	DWORD       dwFlags;
@@ -471,6 +547,19 @@ typedef struct _DIDEVICEIMAGEINFOA {
 	DWORD       dwTextAlign;
 } DIDEVICEIMAGEINFOA, * LPDIDEVICEIMAGEINFOA;
 
+typedef struct _DIDEVICEIMAGEINFOW {
+	WCHAR       tszImagePath[MAX_PATH];
+	DWORD       dwFlags;
+	// These are valid if DIDIFT_OVERLAY is present in dwFlags.
+	DWORD       dwViewID;
+	RECT        rcOverlay;
+	DWORD       dwObjID;
+	DWORD       dwcValidPts;
+	POINT       rgptCalloutLine[5];
+	RECT        rcCalloutRect;
+	DWORD       dwTextAlign;
+} DIDEVICEIMAGEINFOW, * LPDIDEVICEIMAGEINFOW;
+
 typedef struct _DIDEVICEIMAGEINFOHEADERA {
 	DWORD       dwSize;
 	DWORD       dwSizeImageInfo;
@@ -482,6 +571,18 @@ typedef struct _DIDEVICEIMAGEINFOHEADERA {
 	DWORD       dwBufferUsed;
 	LPDIDEVICEIMAGEINFOA lprgImageInfoArray;
 } DIDEVICEIMAGEINFOHEADERA, * LPDIDEVICEIMAGEINFOHEADERA;
+
+typedef struct _DIDEVICEIMAGEINFOHEADERW {
+	DWORD       dwSize;
+	DWORD       dwSizeImageInfo;
+	DWORD       dwcViews;
+	DWORD       dwcButtons;
+	DWORD       dwcAxes;
+	DWORD       dwcPOVs;
+	DWORD       dwBufferSize;
+	DWORD       dwBufferUsed;
+	LPDIDEVICEIMAGEINFOW lprgImageInfoArray;
+} DIDEVICEIMAGEINFOHEADERW, * LPDIDEVICEIMAGEINFOHEADERW;
 
 #ifndef D3DCOLOR_DEFINED
 typedef DWORD D3DCOLOR;
@@ -512,6 +613,18 @@ typedef struct _DICONFIGUREDEVICESPARAMSA {
 	LPUNKNOWN       lpUnkDDSTarget;
 } DICONFIGUREDEVICESPARAMSA, * LPDICONFIGUREDEVICESPARAMSA;
 typedef const DICONFIGUREDEVICESPARAMSA* LPCDICONFIGUREDEVICESPARAMSA;
+
+typedef struct _DICONFIGUREDEVICESPARAMSW {
+	DWORD           dwSize;
+	DWORD           dwcUsers;
+	LPWSTR          lptszUserNames;
+	DWORD           dwcFormats;
+	LPDIACTIONFORMATA   lprgFormats;
+	HWND            hwnd;
+	DICOLORSET      dics;
+	LPUNKNOWN       lpUnkDDSTarget;
+} DICONFIGUREDEVICESPARAMSW, * LPDICONFIGUREDEVICESPARAMSW;
+typedef const DICONFIGUREDEVICESPARAMSW* LPCDICONFIGUREDEVICESPARAMSW;
 
 typedef BOOL(CALLBACK* LPDICONFIGUREDEVICESCALLBACK)(LPUNKNOWN, LPVOID);
 
@@ -560,8 +673,57 @@ DECLARE_INTERFACE(IDirectInputDevice8A)
 
 typedef struct IDirectInputDevice8A* LPDIRECTINPUTDEVICE8A;
 
+
+DECLARE_INTERFACE(IDirectInputDevice8W)
+{
+	/*** IUnknown methods ***/
+	STDMETHOD_(HRESULT, QueryInterface)(GUID * riid, void** ppvObject) PURE;
+	STDMETHOD_(ULONG, AddRef)() PURE;
+	STDMETHOD_(ULONG, Release)() PURE;
+
+	/*** IDirectInputDeviceA methods ***/
+	STDMETHOD(GetCapabilities)(LPDIDEVCAPS lpDIDevCaps) PURE;
+	STDMETHOD(EnumObjects)(LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) PURE;
+	STDMETHOD(GetProperty)(GUID * rguidProp, LPDIPROPHEADER pdiph) PURE;
+	STDMETHOD(SetProperty)(GUID * rguidProp, LPCDIPROPHEADER pdiph) PURE;
+	STDMETHOD(Acquire)() PURE;
+	STDMETHOD(Unacquire)() PURE;
+	STDMETHOD(GetDeviceState)(DWORD cbData, LPVOID lpvData) PURE;
+	STDMETHOD(GetDeviceData)(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags) PURE;
+	STDMETHOD(SetDataFormat)(LPCDIDATAFORMAT lpdf) PURE;
+	STDMETHOD(SetEventNotification)(HANDLE hEvent) PURE;
+	STDMETHOD(SetCooperativeLevel)(HWND hwnd, DWORD dwFlags) PURE;
+	STDMETHOD(GetObjectInfo)(LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow) PURE;
+	STDMETHOD(GetDeviceInfo)(LPDIDEVICEINSTANCEW pdidi) PURE;
+	STDMETHOD(RunControlPanel)(HWND hwndOwner, DWORD dwFlags) PURE;
+	STDMETHOD(Initialize)(HINSTANCE hinst, DWORD dwVersion, GUID * rguid) PURE;
+
+	/*** IDirectInputDevice2A methods ***/
+	STDMETHOD(CreateEffect)(GUID * rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN punkOuter) PURE;
+	STDMETHOD(EnumEffects)(LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType) PURE;
+	STDMETHOD(GetEffectInfo)(LPDIEFFECTINFOW pdei, GUID * rguid) PURE;
+	STDMETHOD(GetForceFeedbackState)(LPDWORD pdwOut) PURE;
+	STDMETHOD(SendForceFeedbackCommand)(DWORD dwFlags) PURE;
+	STDMETHOD(EnumCreatedEffectObjects)(LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback, LPVOID pvRef, DWORD fl) PURE;
+	STDMETHOD(Escape)(LPDIEFFESCAPE pesc) PURE;
+	STDMETHOD(Poll)() PURE;
+	STDMETHOD(SendDeviceData)(DWORD cbObjectData, LPCDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD fl) PURE;
+	/*** IDirectInputDevice7A methods ***/
+	STDMETHOD(EnumEffectsInFile)(LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags) PURE;
+	STDMETHOD(WriteEffectToFile)(LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags) PURE;
+	/*** IDirectInputDevice8A methods ***/
+	STDMETHOD(BuildActionMap)(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags) PURE;
+	STDMETHOD(SetActionMap)(LPDIACTIONFORMATW lpdiaf, LPCWSTR lpszUserName, DWORD dwFlags) PURE;
+	STDMETHOD(GetImageInfo)(LPDIDEVICEIMAGEINFOHEADERW lpdiDevImageInfoHeader) PURE;
+};
+
+typedef struct IDirectInputDevice8W* LPDIRECTINPUTDEVICE8W;
+
 typedef BOOL(CALLBACK* LPDIENUMDEVICESCALLBACKA)(LPCDIDEVICEINSTANCEA, LPVOID);
 typedef BOOL(CALLBACK* LPDIENUMDEVICESBYSEMANTICSCBA)(LPCDIDEVICEINSTANCEA, LPDIRECTINPUTDEVICE8A, DWORD, DWORD, LPVOID);
+
+typedef BOOL(CALLBACK* LPDIENUMDEVICESCALLBACKW)(LPCDIDEVICEINSTANCEW, LPVOID);
+typedef BOOL(CALLBACK* LPDIENUMDEVICESBYSEMANTICSCBW)(LPCDIDEVICEINSTANCEW, LPDIRECTINPUTDEVICE8W, DWORD, DWORD, LPVOID);
 
 DECLARE_INTERFACE(IDirectInput8A)
 {
@@ -582,3 +744,23 @@ DECLARE_INTERFACE(IDirectInput8A)
 };
 
 typedef struct IDirectInput8A* LPDIRECTINPUT8A;
+
+DECLARE_INTERFACE(IDirectInput8W)
+{
+	/*** IUnknown methods ***/
+	STDMETHOD_(HRESULT, QueryInterface)(GUID * riid, void** ppvObject) PURE;
+	STDMETHOD_(ULONG, AddRef)() PURE;
+	STDMETHOD_(ULONG, Release)() PURE;
+
+	/*** IDirectInput8A methods ***/
+	STDMETHOD(CreateDevice)(GUID * rguid, LPDIRECTINPUTDEVICE8W * lplpDirectInputDevice, LPUNKNOWN pUnkOuter) PURE;
+	STDMETHOD(EnumDevices)(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) PURE;
+	STDMETHOD(GetDeviceStatus)(GUID * rguidInstance) PURE;
+	STDMETHOD(RunControlPanel)(HWND hwndOwner, DWORD dwFlags) PURE;
+	STDMETHOD(Initialize)(HINSTANCE hinst, DWORD dwVersion) PURE;
+	STDMETHOD(FindDevice)(GUID * rguid, LPCWSTR pszName, LPGUID pguidInstance) PURE;
+	STDMETHOD(EnumDevicesBySemantics)(LPCWSTR ptszUserName, LPDIACTIONFORMATW lpdiActionFormat, LPDIENUMDEVICESBYSEMANTICSCBW lpCallback, LPVOID pvRef, DWORD dwFlags) PURE;
+	STDMETHOD(ConfigureDevices)(LPDICONFIGUREDEVICESCALLBACK lpdiCallback, LPDICONFIGUREDEVICESPARAMSW lpdiCDParams, DWORD dwFlags, LPVOID pvRefData) PURE;
+};
+
+typedef struct IDirectInput8W* LPDIRECTINPUT8W;
