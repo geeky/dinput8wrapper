@@ -97,12 +97,12 @@ public:
 			//
 			Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
 			Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
-			Rid[0].dwFlags = 0;		// adds HID mouse and also ignores legacy mouse messages
+			Rid[0].dwFlags = 0;
 			Rid[0].hwndTarget = hWnd;
 
 			Rid[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
 			Rid[1].usUsage = HID_USAGE_GENERIC_KEYBOARD;
-			Rid[1].dwFlags = 0;		// adds HID keyboard and also ignores legacy keyboard messages
+			Rid[1].dwFlags = 0;
 			Rid[1].hwndTarget = hWnd;		
 
 			if (diGlobalsInstance->enableGamepadSupport)

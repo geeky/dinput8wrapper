@@ -21,11 +21,13 @@ public:
 	BYTE keyStates[256];
 
 	// Key-States actually sent to the game
-	BYTE gameKeyStates[256];
-		
-	// Current Mouse-State
-	DIMOUSESTATE* mouseState = new DIMOUSESTATE();
-		
+	BYTE gameKeyStates[256];	
+	
+	// Mouse-State for GetDeviceData() / GetDeviceState()
+	DIMOUSESTATE* mouseStateDeviceData = new DIMOUSESTATE();
+	DIMOUSESTATE* mouseStateDeviceDataGame = new DIMOUSESTATE();
+
+	HANDLE mouseEventHandle = NULL;
 
 	void LogA(LPCSTR LogLine, LPCTSTR file, int line, ...)
 	{
@@ -55,7 +57,8 @@ public:
 				
 		ZeroMemory(keyStates, sizeof(keyStates));
 		ZeroMemory(gameKeyStates, sizeof(gameKeyStates));
-		ZeroMemory(mouseState, sizeof(DIMOUSESTATE));
+		ZeroMemory(mouseStateDeviceData, sizeof(DIMOUSESTATE));
+		ZeroMemory(mouseStateDeviceDataGame, sizeof(DIMOUSESTATE));
 
 		dwSequence = 1;
 
@@ -337,41 +340,48 @@ public:
 				}
 				else
 				{
-					mouseState->lX += raw->data.mouse.lLastX;
-					mouseState->lY += raw->data.mouse.lLastY;
+					mouseStateDeviceData->lX += raw->data.mouse.lLastX;
+					mouseStateDeviceData->lY += raw->data.mouse.lLastY;
+
+					//this->LogA("MouseMove2: %i / %i", __FILE__, __LINE__, raw->data.mouse.lLastX, raw->data.mouse.lLastY);									
 
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 					{
 						short mouseWheelDelta = (short)raw->data.mouse.usButtonData;
-						mouseState->lZ += mouseWheelDelta;
+						mouseStateDeviceData->lZ += mouseWheelDelta;
 					}
 
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
 					{
-						mouseState->rgbButtons[0] = 0x80;
+						mouseStateDeviceData->rgbButtons[0] = 0x80;
 					}
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP)
 					{
-						mouseState->rgbButtons[0] = 0x00;
+						mouseStateDeviceData->rgbButtons[0] = 0x00;
 					}
 
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN)
 					{
-						mouseState->rgbButtons[1] = 0x80;
+						mouseStateDeviceData->rgbButtons[1] = 0x80;
 					}
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP)
 					{
-						mouseState->rgbButtons[1] = 0x00;
+						mouseStateDeviceData->rgbButtons[1] = 0x00;
 					}
 
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN)
 					{
-						mouseState->rgbButtons[2] = 0x80;
+						mouseStateDeviceData->rgbButtons[2] = 0x80;
 					}
 					if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_UP)
 					{
-						mouseState->rgbButtons[2] = 0x00;
+						mouseStateDeviceData->rgbButtons[2] = 0x00;
 					}
+				}
+
+				if (this->mouseEventHandle)
+				{
+					ResetEvent(this->mouseEventHandle);
 				}
 			}
 			else if (raw->header.dwType == RIM_TYPEKEYBOARD)
@@ -400,7 +410,7 @@ public:
 				UINT preparsedDataBufferSize = 0;
 				if (GetRawInputDeviceInfo(raw->header.hDevice, RIDI_PREPARSEDDATA, NULL, &preparsedDataBufferSize) != 0)
 				{
-					DebugBreak();
+					LogA("GetRawInputDeviceInfo() with RIDI_PREPARSEDDATA failed!", __FILE__, __LINE__, raw->data.keyboard.VKey);
 				}
 
 				PHIDP_PREPARSED_DATA preparsedDataBuffer = (PHIDP_PREPARSED_DATA)malloc(preparsedDataBufferSize);
@@ -454,67 +464,62 @@ public:
 													}
 
 													LogA("Button pressed: %i (usagePage: %i)", __FILE__, __LINE__, usages[usageIndex], buttonCaps->UsagePage);
-
-
 												}
 											}
 											else if (guResult == HIDP_STATUS_INVALID_REPORT_LENGTH)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_INVALID_REPORT_LENGTH", __FILE__, __LINE__);
 											}
 											else if (guResult == HIDP_STATUS_INVALID_REPORT_TYPE)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_INVALID_REPORT_TYPE", __FILE__, __LINE__);
 											}
 											else if (guResult == HIDP_STATUS_BUFFER_TOO_SMALL)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_BUFFER_TOO_SMALL", __FILE__, __LINE__);
 											}
 											else if (guResult == HIDP_STATUS_INCOMPATIBLE_REPORT_ID)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_INCOMPATIBLE_REPORT_ID", __FILE__, __LINE__);
 											}
 											else if (guResult == HIDP_STATUS_INVALID_PREPARSED_DATA)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_INVALID_PREPARSED_DATA", __FILE__, __LINE__);
 											}
 											else if (guResult == HIDP_STATUS_USAGE_NOT_FOUND)
 											{
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with HIDP_STATUS_USAGE_NOT_FOUND", __FILE__, __LINE__);
 											}
 											else {
-												DebugBreak();
+												LogA("HidP_GetUsages() failed with unknown return value: %x", __FILE__, __LINE__, guResult);
 											}
 
 											delete usages;
 										}
 									}
 								}
-
-								//DebugBreak();
 							}
 							else {
-								DebugBreak();
+								LogA("HidP_GetButtonCaps() failed", __FILE__, __LINE__);
+
 							}
 						}
 					}
 					else if (rv == HIDP_STATUS_INVALID_PREPARSED_DATA)
 					{
-						DebugBreak();
+						LogA("HidP_GetButtonCaps() failed with HIDP_STATUS_INVALID_PREPARSED_DATA", __FILE__, __LINE__);
 					}
 					else {
-						DebugBreak();
+						LogA("HidP_GetButtonCaps() failed with rv: %x", __FILE__, __LINE__, rv);
 					}
 				}
 				else {
-					DebugBreak();
+					LogA("GetRawInputDeviceInfo() failed", __FILE__, __LINE__);
 				}
 			}
 			else
 			{
-				char tmp[1024];
-				wsprintfA(tmp, "Unhandled raw->header.dwType: %x", raw->header.dwType);
-				LogA(tmp, __FILE__, __LINE__);
+				LogA("Unhandled raw->header.dwType: %x", __FILE__, __LINE__, raw->header.dwType);
 			}
 		}
 		Unlock();
