@@ -261,40 +261,40 @@ public:
 	{
 		*pdwOut = DIGFFS_POWEROFF | DIGFFS_EMPTY;
 
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->GetForceFeedbackState()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->GetForceFeedbackState()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_SendForceFeedbackCommand(DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->SendForceFeedbackCommand()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->SendForceFeedbackCommand()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback, LPVOID pvRef, DWORD fl)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->EnumCreatedEffectObjects()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->EnumCreatedEffectObjects()", __FILE__, __LINE__);
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_Escape(LPDIEFFESCAPE pesc)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->Escape()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->Escape()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_Poll() {
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->Poll()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->Poll()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD fl) {
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->SendDeviceData()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->SendDeviceData()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}

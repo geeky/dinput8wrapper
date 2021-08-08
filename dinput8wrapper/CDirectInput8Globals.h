@@ -29,6 +29,8 @@ public:
 
 	HANDLE mouseEventHandle = NULL;
 
+	DIJOYSTATE2* gamepadState = new DIJOYSTATE2();
+
 	void LogA(LPCSTR LogLine, LPCTSTR file, int line, ...)
 	{
 		int flen = strlen(file) - 1;
@@ -59,6 +61,7 @@ public:
 		ZeroMemory(gameKeyStates, sizeof(gameKeyStates));
 		ZeroMemory(mouseStateDeviceData, sizeof(DIMOUSESTATE));
 		ZeroMemory(mouseStateDeviceDataGame, sizeof(DIMOUSESTATE));
+		ZeroMemory(gamepadState, sizeof(DIJOYSTATE2));
 
 		dwSequence = 1;
 
@@ -297,7 +300,7 @@ public:
 		else
 		{
 			wsprintfW(keyName, L"Unknown key 0x%x", dik);
-		}
+		}		
 	}
 
 	void GetKeyNameA(DWORD dik, char* keyName)
@@ -306,6 +309,8 @@ public:
 
 		GetKeyNameW(dik, keyNameW);
 		ToAnsi(keyNameW, keyName);
+
+		//this->LogA("GetKeyNameA(dik: %i): %s", __FILE__, __LINE__, dik, keyName);
 	}
 
 	void ToAnsi(wchar_t* inputString, char* outputString)
@@ -388,16 +393,14 @@ public:
 			{
 				DWORD keyMapped = dikMapping[raw->data.keyboard.VKey];
 				if (keyMapped == 0x00)
-				{
-					char tmp[4096];
-					wsprintfA(tmp, "[dinput8] VirtualKeyCode %x unhandled", raw->data.keyboard.VKey);
-					LogA(tmp, __FILE__, __LINE__);
+				{					
+					LogA("VirtualKeyCode %x unhandled", __FILE__, __LINE__, raw->data.keyboard.VKey);
 				}
 				else if (keyMapped == 0xFF)
 				{
 					// 0xFF = Intentionally ignore this key
 
-					LogA("[dinput8] VirtualKeyCode % x ignored", __FILE__, __LINE__, raw->data.keyboard.VKey);
+					LogA("VirtualKeyCode % x ignored", __FILE__, __LINE__, raw->data.keyboard.VKey);
 				}
 				else
 				{

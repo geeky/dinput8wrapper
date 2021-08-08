@@ -15,6 +15,10 @@ DEFINE_GUID2(GUID_SysMouse         , 0x6F1D2B60, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x4
 DEFINE_GUID2(GUID_SysKeyboard      , 0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
 DEFINE_GUID2(GUID_Xbox360Controller, 0x028E045E, 0x0000, 0x0000, 0x00, 0x00, 0x50, 0x49 ,0x44, 0x56, 0x49, 0x44);
 
+DEFINE_GUID2(GUID_XAxis            , 0xA36D02E0, 0xC9F3, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+
+#define DIDOI_GUIDISUSAGE       0x00010000
+
 #define DIPH_DEVICE             0
 #define DIPH_BYOFFSET           1
 
@@ -223,6 +227,7 @@ DEFINE_GUID2(GUID_Xbox360Controller, 0x028E045E, 0x0000, 0x0000, 0x00, 0x00, 0x5
 #define DI_OK                           S_OK
 #define DIERR_INVALIDPARAM              E_INVALIDARG
 #define DIERR_UNSUPPORTED               E_NOTIMPL
+#define DIERR_INPUTLOST					0x8007001E
 #define DI_NOEFFECT                     S_FALSE
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, GUID* riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter);
@@ -263,6 +268,51 @@ typedef struct DIMOUSESTATE {
 	LONG lZ;
 	BYTE rgbButtons[4];
 } DIMOUSESTATE, * LPDIMOUSESTATE;
+
+typedef struct DIJOYSTATE {
+	LONG lX;
+	LONG lY;
+	LONG lZ;
+	LONG lRx;
+	LONG lRy;
+	LONG lRz;
+	LONG rglSlider[2];
+	DWORD rgdwPOV[4];
+	BYTE rgbButtons[32];
+} DIJOYSTATE, * LPDIJOYSTATE;
+
+typedef struct DIJOYSTATE2 {
+	LONG    lX;
+	LONG    lY;
+	LONG    lZ;
+	LONG    lRx;
+	LONG    lRy;
+	LONG    lRz;
+	LONG    rglSlider[2];
+	DWORD   rgdwPOV[4];
+	BYTE    rgbButtons[128];
+	LONG    lVX;
+	LONG    lVY;
+	LONG    lVZ;
+	LONG    lVRx;
+	LONG    lVRy;
+	LONG    lVRz;
+	LONG    rglVSlider[2];
+	LONG    lAX;
+	LONG    lAY;
+	LONG    lAZ;
+	LONG    lARx;
+	LONG    lARy;
+	LONG    lARz;
+	LONG    rglASlider[2];
+	LONG    lFX;
+	LONG    lFY;
+	LONG    lFZ;
+	LONG    lFRx;
+	LONG    lFRy;
+	LONG    lFRz;
+	LONG    rglFSlider[2];
+} DIJOYSTATE2, * LPDIJOYSTATE2;
 
 typedef struct DIDEVCAPS {
 	DWORD   dwSize;

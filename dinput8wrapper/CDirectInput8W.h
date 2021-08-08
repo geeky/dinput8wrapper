@@ -68,19 +68,22 @@ public:
 			*lplpDirectInputDevice = keyboardDevice;
 			return DI_OK;
 		}
+		else if ((diGlobalsInstance->enableGamepadSupport) && (IsEqualIID(GUID_Xbox360Controller, *rguid)))
+		{
+			diGlobalsInstance->LogA("CreateDevice() for GUID_Xbox360Controller", __FILE__, __LINE__);
 
-		char tmp[4096];
-		wsprintfA(tmp, "[dinput8] CreateDevice() for rguid=%x-%x-%x-%x", rguid->Data1, rguid->Data2, rguid->Data3, rguid->Data4);
-		diGlobalsInstance->LogA(tmp, __FILE__, __LINE__);
+			*lplpDirectInputDevice = gamepadDevice;
+			return DI_OK;
+		}
+		
+		diGlobalsInstance->LogA("CreateDevice() for rguid=%x-%x-%x-%x", __FILE__, __LINE__, rguid->Data1, rguid->Data2, rguid->Data3, rguid->Data4);
 
 		return E_ABORT;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
-	{
-		char tmp[4096];
-		wsprintfA(tmp, "[dinput8] EnumDevices() for dwDevType=0x%x, dwFlags=0x0", dwDevType, dwFlags);
-		diGlobalsInstance->LogA(tmp, __FILE__, __LINE__);
+	{		
+		diGlobalsInstance->LogA("EnumDevices() for dwDevType=0x%x, dwFlags=0x0", __FILE__, __LINE__, dwDevType, dwFlags);
 
 		if ((dwDevType == DI8DEVCLASS_ALL) || (dwDevType == DI8DEVCLASS_POINTER) || (dwDevType == DI8DEVTYPE_MOUSE))
 		{

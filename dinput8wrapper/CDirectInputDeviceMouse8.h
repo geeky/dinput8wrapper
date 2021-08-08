@@ -6,6 +6,8 @@ private:
 	DIDATAFORMAT dataFormat;
 	int refCount;
 	bool exclusiveMode;
+	bool isAquired;
+	HWND hWndForegroundWindow;
 
 public:
 
@@ -16,6 +18,8 @@ public:
 		ZeroMemory(&dataFormat, sizeof(DIDATAFORMAT));
 		refCount = 1;
 		exclusiveMode = false;
+		isAquired = false;
+		hWndForegroundWindow = NULL;
 	}
 
 	HRESULT STDMETHODCALLTYPE Base_QueryInterface(GUID* riid, LPVOID* ppvObj)
@@ -77,15 +81,33 @@ public:
 	HRESULT STDMETHODCALLTYPE Base_Acquire() {
 		diGlobalsInstance->LogA("MouseDevice->Acquire()", __FILE__, __LINE__);
 
-		HWND hWnd = GetForegroundWindow();
-		SetCapture(hWnd);
+		this->hWndForegroundWindow = GetForegroundWindow();	
 		
-		if (this->exclusiveMode)
-		{
-			ShowCursor(false);
-		}
+		this->Base_AcquireInternal();
+		this->isAquired = true;
 
 		return DI_OK;
+	}
+
+	void Base_AcquireInternal()
+	{
+		if (!this->isAquired)
+		{
+			return;
+		}
+
+		// Initial mouse capture
+		// (Or capture lost due to 'ALT+TAB'-ing)
+		HWND hWndCapture = GetCapture();
+		if (hWndCapture != this->hWndForegroundWindow)
+		{
+			SetCapture(this->hWndForegroundWindow);
+
+			if (this->exclusiveMode)
+			{
+				ShowCursor(false);
+			}
+		}
 	}
 
 	HRESULT STDMETHODCALLTYPE Base_Unacquire() {
@@ -98,11 +120,21 @@ public:
 			ShowCursor(true);
 		}
 
+		this->isAquired = false;
+
 		return DI_OK;
 	}
 
 	HRESULT STDMETHODCALLTYPE Base_GetDeviceState(DWORD cbData, LPVOID lpvData) {
 		diGlobalsInstance->LogA("MouseDevice->GetDeviceState()", __FILE__, __LINE__);
+
+		if (!this->isAquired)
+		{
+			diGlobalsInstance->LogA("MouseDevice->GetDeviceState(): DIERR_INPUTLOST", __FILE__, __LINE__);
+			return DIERR_INPUTLOST;
+		}
+
+		this->Base_AcquireInternal();
 
 		diGlobalsInstance->Lock();
 		{
@@ -122,6 +154,14 @@ public:
 
 	HRESULT STDMETHODCALLTYPE Base_GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags) {
 		//diGlobalsInstance->LogA("MouseDevice->GetDeviceData()", __FILE__, __LINE__);
+
+		if (!this->isAquired)
+		{
+			diGlobalsInstance->LogA("MouseDevice->GetDeviceData(): DIERR_INPUTLOST", __FILE__, __LINE__);
+			return DIERR_INPUTLOST;
+		}
+
+		this->Base_AcquireInternal();
 
 		if (cbObjectData != sizeof(DIDEVICEOBJECTDATA))
 		{

@@ -68,8 +68,15 @@ public:
 			*lplpDirectInputDevice = keyboardDevice;
 			return DI_OK;
 		}
+		else if ((diGlobalsInstance->enableGamepadSupport) && (IsEqualIID(GUID_Xbox360Controller, *rguid)))
+		{
+			diGlobalsInstance->LogA("CreateDevice() for GUID_Xbox360Controller", __FILE__, __LINE__);
+
+			*lplpDirectInputDevice = gamepadDevice;
+			return DI_OK;
+		}
 		
-		diGlobalsInstance->LogA("CreateDevice() for rguid = % x - % x - % x - % x",__FILE__,__LINE__, rguid->Data1, rguid->Data2, rguid->Data3, rguid->Data4);
+		diGlobalsInstance->LogA("CreateDevice() for rguid = %x-%x-%x-%x",__FILE__,__LINE__, rguid->Data1, rguid->Data2, rguid->Data3, rguid->Data4);
 		return E_ABORT;
 	}
 

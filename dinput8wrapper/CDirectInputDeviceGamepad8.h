@@ -6,10 +6,12 @@ public:
 	DIDATAFORMAT dataFormat;
 	ULONG refCount;
 	DWORD dwDevType;
+	bool isAcquired;
 
 	CDirectInputDeviceGamepad8()
 	{
 		refCount = 1;
+		isAcquired = false;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_QueryInterface(GUID* riid, LPVOID* ppvObj)
@@ -67,24 +69,64 @@ public:
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_Acquire() {
-		//diGlobalsInstance->LogA("GamepadDevice->Acquire()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("GamepadDevice->Acquire()", __FILE__, __LINE__);		
 
-		HWND hWnd = GetForegroundWindow();
-		SetCapture(hWnd);
+		this->isAcquired = true;
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_Unacquire() {
-		//diGlobalsInstance->LogA("GamepadDevice->Unacquire()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("GamepadDevice->Unacquire()", __FILE__, __LINE__);
 
-		ReleaseCapture();
+		this->isAcquired = false;
 
 		return DI_OK;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Base_GetDeviceState(DWORD cbData, LPVOID lpvData) {
 		diGlobalsInstance->LogA("GamepadDevice->GetDeviceState()", __FILE__, __LINE__);
+
+		if (!this->isAcquired)
+		{
+			return DIERR_INPUTLOST;
+		}
+
+		diGlobalsInstance->Lock();
+		{
+			ZeroMemory(lpvData, cbData);
+
+			diGlobalsInstance->gamepadState->lX = 0;
+			diGlobalsInstance->gamepadState->lY = 0;
+			diGlobalsInstance->gamepadState->lZ = 0;
+			diGlobalsInstance->gamepadState->lRx = 0;
+			diGlobalsInstance->gamepadState->lRy = 0;
+			diGlobalsInstance->gamepadState->lRz = 0;
+			diGlobalsInstance->gamepadState->rglSlider[0] = 0;
+			diGlobalsInstance->gamepadState->rglSlider[1] = 0;
+			diGlobalsInstance->gamepadState->rgdwPOV[0] = -1;
+			diGlobalsInstance->gamepadState->rgdwPOV[1] = -1;
+			diGlobalsInstance->gamepadState->rgdwPOV[2] = -1;
+			diGlobalsInstance->gamepadState->rgdwPOV[3] = -1;
+			for (int i = 0; i < 32; i++)
+			{
+				diGlobalsInstance->gamepadState->rgbButtons[i] = 0;
+			}
+
+			if (cbData == sizeof(DIJOYSTATE))
+			{
+				memcpy(lpvData, diGlobalsInstance->gamepadState, sizeof(DIJOYSTATE));
+			}
+			else if (cbData == sizeof(DIJOYSTATE2))
+			{
+				memcpy(lpvData, diGlobalsInstance->gamepadState, sizeof(DIJOYSTATE2));
+			}
+			else {
+				diGlobalsInstance->LogA("GamepadDevice->GetDeviceState(): Unsupported cbData: %i", __FILE__, __LINE__,cbData);
+				return DIERR_UNSUPPORTED;
+			}
+		}
+		diGlobalsInstance->Unlock();
 
 		return DI_OK;
 	}
@@ -113,7 +155,7 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE Base_SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("GamepadDevice->SetCooperativeLevel()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("GamepadDevice->SetCooperativeLevel(), dwFlags: %x", __FILE__, __LINE__, dwFlags);
 		return DI_OK;
 	}
 

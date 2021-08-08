@@ -182,35 +182,35 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE EnumEffectsInFile(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->EnumEffectsInFile()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->EnumEffectsInFile()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE WriteEffectToFile(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->WriteEffectToFile()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->WriteEffectToFile()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE BuildActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->BuildActionMap()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->BuildActionMap()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE SetActionMap(LPDIACTIONFORMATA lpdiaf, LPCSTR lpszUserName, DWORD dwFlags)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->SetActionMap()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->SetActionMap()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE GetImageInfo(LPDIDEVICEIMAGEINFOHEADERA lpdiDevImageInfoHeader)
 	{
-		diGlobalsInstance->LogA("[dinput8] KeyboardDevice->GetImageInfo()", __FILE__, __LINE__);
+		diGlobalsInstance->LogA("KeyboardDevice->GetImageInfo()", __FILE__, __LINE__);
 
 		return DIERR_UNSUPPORTED;
 	}
